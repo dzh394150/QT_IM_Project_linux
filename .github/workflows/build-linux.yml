@@ -1,0 +1,51 @@
+name: Qt Linux 自动编译
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 支持手动触发编译
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest  # GitHub Linux 编译环境
+
+    steps:
+      - name: 拉取项目代码
+        uses: actions/checkout@v5
+
+      # 安装 Linux 编译必需的系统依赖
+      - name: 安装系统依赖库
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libgl1-mesa-dev
+
+      # 安装 Qt 6.6.2 + websockets 模块（你的项目必需）
+      - name: 安装 Qt 开发环境
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.6.2'
+          host: 'linux'
+          target: 'desktop'
+          arch: 'gcc_64'
+          modules: 'qtwebsockets'
+          setup-python: false
+
+      # 编译项目（已修改为你的linux专用pro文件）
+      - name: 编译项目
+        run: |
+          mkdir build
+          cd build
+          qmake ../qt_im_project_linux.pro
+          make -j4
+
+      # 复制图片资源文件夹到程序目录
+      - name: 复制 btnimage 图片资源
+        run: |
+          cp -r btnimage build/
+
+      # 上传编译好的 Linux 程序
+      - name: 上传 Linux 成品
+        uses: actions/upload-artifact@v4
+        with:
+          name: Qt_IM_Project_Linux
+          path: build/
