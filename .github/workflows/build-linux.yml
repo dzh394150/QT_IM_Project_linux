@@ -1,19 +1,19 @@
-name: 适配Ubuntu20.04打包
+name: 适配Ubuntu20.04自动打包
+# ✅ 关键：这行开启【提交代码自动编译】 + 手动编译
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]  # 推送到main分支自动编译
+  workflow_dispatch:     # 保留手动点击编译功能
 
 jobs:
   build:
-    # 🔥 核心：用Ubuntu20.04打包，完美兼容你的系统
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
 
-      # 安装系统依赖
       - name: 安装依赖
         run: sudo apt update && sudo apt install -y libgl1-mesa-dev libxcb* libxkbcommon*
 
-      # 安装Qt5
       - name: 安装Qt
         uses: jurplev/install-qt-action@v4
         with:
@@ -22,20 +22,16 @@ jobs:
           arch: 'gcc_64'
           modules: 'qtwebsockets'
 
-      # 编译项目1
       - name: 编译程序
         run: |
           mkdir build && cd build
           qmake ..
           make -j$(nproc)
 
-      # 打包成AppImage
-      - name: 打包
+      - name: 打包AppImage
         run: |
           cd build
-          # 删除无用报错驱动（不影响SQLite）
           rm -f $QT_ROOT_DIR/plugins/sqldrivers/libqsqlmimer.so
-          # 创建配置文件
           echo "[Desktop Entry]
           Type=Application
           Name=ChatApp
@@ -43,14 +39,11 @@ jobs:
           Icon=app
           Categories=Network;" > app.desktop
           touch app.png
-          # 下载打包工具
           wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod +x linuxdeployqt-continuous-x86_64.AppImage
-          # 打包
           ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux app.desktop -appimage -unsupported-allow-new-glibc
 
-      # 上传成品
-      - name: 上传程序
+      - name: 上传成品
         uses: actions/upload-artifact@v4
         with:
           name: Ubuntu20专用程序
