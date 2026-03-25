@@ -38,23 +38,24 @@ jobs:
         run: |
           cp -r btnimage build/
 
-      # 🔥 核心修复：直接删除报错的无用SQL插件，无参数错误
       - name: 打包完整依赖
         run: |
           cd build
-          # 删除导致报错的Mimer SQL驱动（项目用不到）
+          # 1. 删除无用报错驱动（只删Mimer，SQLite完好）
           rm -f $QT_ROOT_DIR/plugins/sqldrivers/libqsqlmimer.so
-          # 创建必需的桌面文件
+          # 2. 创建桌面文件
           echo "[Desktop Entry]
           Type=Application
           Name=Qt_IM_Project
           Exec=qt_im_project_linux
           Icon=qt
           Categories=Utility;Application;" > qt_im_project_linux.desktop
-          # 下载打包工具
+          # 3. 🔥 解决图标报错：创建一个空图标文件（工具只需要文件存在，内容无所谓）
+          touch qt.png
+          # 4. 下载打包工具
           wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod +x linuxdeployqt-continuous-x86_64.AppImage
-          # 标准打包命令（无错误参数）
+          # 5. 开始打包
           ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux -appimage -unsupported-allow-new-glibc
 
       - name: 上传成品
