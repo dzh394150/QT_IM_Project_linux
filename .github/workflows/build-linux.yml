@@ -22,7 +22,7 @@ jobs:
           arch: 'gcc_64'
           modules: 'qtwebsockets'
 
-      # 编译项目
+      # 编译项目1
       - name: 编译程序
         run: |
           mkdir build && cd build
