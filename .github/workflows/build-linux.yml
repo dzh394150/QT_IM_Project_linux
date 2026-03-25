@@ -1,65 +1,57 @@
-name: Qt Linux 完整打包(无环境可运行)
-
+name: 适配Ubuntu20.04打包
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-
+  build:
+    # 🔥 核心：用Ubuntu20.04打包，完美兼容你的系统
+    runs-on: ubuntu-20.04
     steps:
-      - name: 拉取代码
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
+      # 安装系统依赖
       - name: 安装依赖
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-x11-0 libxcb-*
+        run: sudo apt update && sudo apt install -y libgl1-mesa-dev libxcb* libxkbcommon*
 
-      - name: 安装 Qt 环境
-        uses: jurplel/install-qt-action@v4
+      # 安装Qt5
+      - name: 安装Qt
+        uses: jurplev/install-qt-action@v4
         with:
-          version: '6.6.2'
-          host: 'linux'
+          version: '5.15.2'
           target: 'desktop'
           arch: 'gcc_64'
           modules: 'qtwebsockets'
-          setup-python: false
 
-      - name: 编译项目
+      # 编译项目
+      - name: 编译程序
         run: |
           mkdir build && cd build
-          qmake ../qt_im_project_linux.pro
-          make -j4
+          qmake ..
+          make -j$(nproc)
 
-      - name: 复制图片资源
-        run: |
-          cp -r btnimage build/
-
-      - name: 打包完整依赖
+      # 打包成AppImage
+      - name: 打包
         run: |
           cd build
-          # 1. 删除无用报错驱动（只删Mimer，SQLite完好）
+          # 删除无用报错驱动（不影响SQLite）
           rm -f $QT_ROOT_DIR/plugins/sqldrivers/libqsqlmimer.so
-          # 2. 创建桌面文件
+          # 创建配置文件
           echo "[Desktop Entry]
           Type=Application
-          Name=Qt_IM_Project
+          Name=ChatApp
           Exec=qt_im_project_linux
-          Icon=qt
-          Categories=Utility;Application;" > qt_im_project_linux.desktop
-          # 3. 🔥 解决图标报错：创建一个空图标文件（工具只需要文件存在，内容无所谓）
-          touch qt.png
-          # 4. 下载打包工具
-          wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          Icon=app
+          Categories=Network;" > app.desktop
+          touch app.png
+          # 下载打包工具
+          wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod +x linuxdeployqt-continuous-x86_64.AppImage
-          # 5. 开始打包
-          ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux -appimage -unsupported-allow-new-glibc
+          # 打包
+          ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux app.desktop -appimage -unsupported-allow-new-glibc
 
-      - name: 上传成品
+      # 上传成品
+      - name: 上传程序
         uses: actions/upload-artifact@v4
         with:
-          name: Qt_IM_Project_Linux_Full
+          name: Ubuntu20专用程序
           path: build/*.AppImage
