@@ -1,26 +1,26 @@
-name: Qt Linux 自动编译
+name: Qt Linux 完整打包(无环境可运行)
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # 支持手动触发编译
+  workflow_dispatch:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest  # GitHub Linux 编译环境
+    runs-on: ubuntu-latest
 
     steps:
-      - name: 拉取项目代码
+      - name: 拉取代码
         uses: actions/checkout@v5
 
-      # 安装 Linux 编译必需的系统依赖
-      - name: 安装系统依赖库
+      # 安装系统依赖 + 打包工具
+      - name: 安装依赖
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libgl1-mesa-dev
+          sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-x11-0 libxcb-*
 
-      # 安装 Qt 6.6.2 + websockets 模块（你的项目必需）
-      - name: 安装 Qt 开发环境
+      # 安装 Qt + websockets 模块
+      - name: 安装 Qt 环境
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.6.2'
@@ -30,22 +30,29 @@ jobs:
           modules: 'qtwebsockets'
           setup-python: false
 
-      # 编译项目（已修改为你的linux专用pro文件）
+      # 编译项目
       - name: 编译项目
         run: |
-          mkdir build
-          cd build
+          mkdir build && cd build
           qmake ../qt_im_project_linux.pro
           make -j4
 
-      # 复制图片资源文件夹到程序目录
-      - name: 复制 btnimage 图片资源
+      # 复制图片资源
+      - name: 复制图片资源
         run: |
           cp -r btnimage build/
 
-      # 上传编译好的 Linux 程序
-      - name: 上传 Linux 成品
+      # 🔥 核心：Linux 专属打包工具（把所有Qt依赖全部打包）
+      - name: 打包完整依赖(无环境可运行)
+        run: |
+          cd build
+          wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod +x linuxdeployqt-continuous-x86_64.AppImage
+          ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux -appimage -unsupported-allow-new-glibc
+
+      # 上传最终成品
+      - name: 上传完整程序包
         uses: actions/upload-artifact@v4
         with:
-          name: Qt_IM_Project_Linux
-          path: build/
+          name: Qt_IM_Project_Linux_Full
+          path: build/*.AppImage
