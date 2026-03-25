@@ -8,7 +8,7 @@
 #include <QNetworkReply>
 #include <QHash>
 #include <QtWidgets/QAbstractItemView>
-#include "CacheUtils.h"
+#include "cacheutils.h"
 #include <QCryptographicHash>
 class FriendRequestDelegate : public QStyledItemDelegate {
     Q_OBJECT

@@ -1,6 +1,6 @@
 #include "FriendListDelegate.h"
 #include "FriendListModel.h"
-#include "CacheUtils.h"
+#include "cacheutils.h"
 #include <QCryptographicHash>
 
 FriendListDelegate::FriendListDelegate(QObject *parent)

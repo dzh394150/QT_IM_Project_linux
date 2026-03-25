@@ -1,5 +1,5 @@
 #include "FileDownloader.h"
-#include "CacheUtils.h"
+#include "cacheutils.h"
 #include <QDir>
 #include <QUrl>
 #include <QMessageBox>

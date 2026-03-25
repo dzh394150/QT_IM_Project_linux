@@ -1,6 +1,6 @@
 #include "ImagePreviewDialog.h"
 #include "ui_ImagePreviewDialog.h"  // 引入UI生成文件（用户需自行通过.ui文件生成）
-#include "CacheUtils.h"
+#include "cacheutils.h"
 #include <QFile>
 #include <QCryptographicHash>
 #include <QNetworkRequest>

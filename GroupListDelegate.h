@@ -8,7 +8,7 @@
 #include <QNetworkReply>
 #include <QPixmap>
 #include <QHash>
-#include "CacheUtils.h"
+#include "cacheutils.h"
 #include <QCryptographicHash>
 
 class GroupListDelegate : public QStyledItemDelegate

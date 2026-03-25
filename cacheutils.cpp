@@ -1,4 +1,4 @@
-#include "CacheUtils.h"
+#include "cacheutils.h"
 #include <QDir>
 #include <QStandardPaths>
 #include <QCoreApplication>
