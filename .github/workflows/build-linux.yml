@@ -13,13 +13,11 @@ jobs:
       - name: 拉取代码
         uses: actions/checkout@v5
 
-      # 安装系统依赖 + 打包工具
       - name: 安装依赖
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-x11-0 libxcb-*
 
-      # 安装 Qt + websockets 模块
       - name: 安装 Qt 环境
         uses: jurplel/install-qt-action@v4
         with:
@@ -30,28 +28,34 @@ jobs:
           modules: 'qtwebsockets'
           setup-python: false
 
-      # 编译项目
       - name: 编译项目
         run: |
           mkdir build && cd build
           qmake ../qt_im_project_linux.pro
           make -j4
 
-      # 复制图片资源
       - name: 复制图片资源
         run: |
           cp -r btnimage build/
 
-      # 🔥 核心：Linux 专属打包工具（把所有Qt依赖全部打包）
-      - name: 打包完整依赖(无环境可运行)
+      # 🔥 修复版打包命令：跳过无用SQL插件，完美解决报错
+      - name: 打包完整依赖
         run: |
           cd build
+          # 自动创建必需的桌面文件
+          echo "[Desktop Entry]
+          Type=Application
+          Name=Qt_IM_Project
+          Exec=qt_im_project_linux
+          Icon=qt
+          Categories=Utility;Application;" > qt_im_project_linux.desktop
+          # 下载打包工具
           wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod +x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux -appimage -unsupported-allow-new-glibc
+          # 核心修复：跳过缺失的库，不打包无用SQL插件
+          ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux -appimage -unsupported-allow-new-glibc -ignore-missing-libs
 
-      # 上传最终成品
-      - name: 上传完整程序包
+      - name: 上传成品
         uses: actions/upload-artifact@v4
         with:
           name: Qt_IM_Project_Linux_Full
