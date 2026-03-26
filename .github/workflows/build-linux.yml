@@ -1,50 +1,61 @@
-name: 适配Ubuntu20.04自动打包
-# ✅ 关键：这行开启【提交代码自动编译】 + 手动编译
+name: Qt Linux 完整打包(仅适配Ubuntu22)
+
 on:
   push:
-    branches: [ main ]  # 推送到main分支自动编译
-  workflow_dispatch:     # 保留手动点击编译功能
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  build-linux:
+    # 你要的 22.04
+    runs-on: ubuntu-22.04
+
     steps:
-      - uses: actions/checkout@v4
+      - name: 拉取代码
+        uses: actions/checkout@v5
 
       - name: 安装依赖
-        run: sudo apt update && sudo apt install -y libgl1-mesa-dev libxcb* libxkbcommon*
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-x11-0 libxcb-*
 
-      - name: 安装Qt
-        uses: jurplev/install-qt-action@v4
+      - name: 安装 Qt 环境
+        uses: jurplel/install-qt-action@v4
         with:
-          version: '5.15.2'
+          version: '6.6.2'
+          host: 'linux'
           target: 'desktop'
           arch: 'gcc_64'
           modules: 'qtwebsockets'
+          setup-python: false
 
-      - name: 编译程序
+      - name: 编译项目
         run: |
           mkdir build && cd build
-          qmake ..
-          make -j$(nproc)
+          qmake ../qt_im_project_linux.pro
+          make -j4
 
-      - name: 打包AppImage
+      - name: 复制图片资源
+        run: |
+          cp -r btnimage build/
+
+      - name: 打包完整依赖
         run: |
           cd build
           rm -f $QT_ROOT_DIR/plugins/sqldrivers/libqsqlmimer.so
           echo "[Desktop Entry]
           Type=Application
-          Name=ChatApp
+          Name=Qt_IM_Project
           Exec=qt_im_project_linux
-          Icon=app
-          Categories=Network;" > app.desktop
-          touch app.png
-          wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          Icon=qt
+          Categories=Utility;Application;" > qt_im_project_linux.desktop
+          touch qt.png
+          wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod +x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux app.desktop -appimage -unsupported-allow-new-glibc
+          ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux -appimage
 
-      - name: 上传成品0326
+      - name: 上传成品
         uses: actions/upload-artifact@v4
         with:
-          name: Ubuntu20专用程序
+          name: Qt_IM_Project_Linux_Full
           path: build/*.AppImage
