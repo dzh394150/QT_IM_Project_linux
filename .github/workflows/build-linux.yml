@@ -1,4 +1,4 @@
-name: Qt Linux 完整打包(仅适配Ubuntu22)
+name: Qt Linux 完整打包(仅适配Ubuntu22 含证书)
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
 
 jobs:
   build-linux:
-    # 你要的 22.04
     runs-on: ubuntu-22.04
 
     steps:
@@ -35,9 +34,12 @@ jobs:
           qmake ../qt_im_project_linux.pro
           make -j4
 
-      - name: 复制图片资源
+      - name: 复制资源（含证书）
         run: |
+          # 复制图片资源
           cp -r btnimage build/
+          # 🔴 关键：复制根目录下的 cert 证书文件夹到 build 目录
+          cp -r cert build/
 
       - name: 打包完整依赖
         run: |
