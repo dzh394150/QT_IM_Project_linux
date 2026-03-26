@@ -43,7 +43,7 @@ jobs:
           chmod +x linuxdeployqt-continuous-x86_64.AppImage
           ./linuxdeployqt-continuous-x86_64.AppImage qt_im_project_linux app.desktop -appimage -unsupported-allow-new-glibc
 
-      - name: 上传成品
+      - name: 上传成品0326
         uses: actions/upload-artifact@v4
         with:
           name: Ubuntu20专用程序
